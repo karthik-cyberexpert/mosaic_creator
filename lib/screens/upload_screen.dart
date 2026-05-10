@@ -44,7 +44,16 @@ class _UploadScreenState extends State<UploadScreen>
     _picking = true;
     try {
       final remaining = widget.imageCount - _images.length;
-      if (remaining <= 0) return;
+      if (remaining <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Image limit reached! Remove some to add more.'),
+            backgroundColor: const Color(0xFF8B5CF6),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
 
       final picked = await _picker.pickMultiImage(
         maxWidth: 400,
@@ -53,9 +62,20 @@ class _UploadScreenState extends State<UploadScreen>
       );
 
       if (picked.isNotEmpty) {
+        if (picked.length > remaining) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('You can only add $remaining more images. (Selected ${picked.length})'),
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+          return;
+        }
+
         setState(() {
-          final take = remaining < picked.length ? remaining : picked.length;
-          _images.addAll(picked.take(take));
+          _images.addAll(picked);
         });
       }
     } finally {
